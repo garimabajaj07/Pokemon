@@ -1,33 +1,41 @@
 const wrapper = document.querySelector('.wrapper')
 const container = document.querySelector('.container')
 const searchPokemon = document.querySelector('#search')
+let baseUrl = "https://pokeapi.co/api/v2/pokemon?limit=20&offset=0"
+let fragment = document.createDocumentFragment()
 
-async function fetchPokemon() {
+window.addEventListener('load', async () => {
+    const temp = await fetchPokemon(baseUrl)
+    const response = temp.results
+    console.log(response)
+
+    let promises = []
+    for (let i = 0; i < response.length; i++) {
+        promises.push(fetchPokemon(response[i].url))
+    }
+    console.log(promises);
+
+    const finalData = await Promise.all(promises)
+    for (let a = 0; a < finalData.length; a++) {
+        showData(finalData[a])
+        container.append(fragment)
+    }
+    console.log(finalData);
+
+})
+async function fetchPokemon(url) {
     try {
-        const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20&offset=0")
+        const response = await fetch(url)
         const result = await response.json()
-        fetchPokemonDetails(result.results)
+        return result
     } catch (error) {
         console.log(error)
     }
 }
 fetchPokemon();
 
-async function fetchPokemonDetails(arr) {
 
-    for (let i = 0; i < arr.length; i++) {
-        try {
-            const response = await fetch(arr[i].url)
-            const result = await response.json()
-            showData(result)
-        } catch (error) {
-            console.log(error)
-        }
-    }
-}
-
-function showData(arr) {
-    console.log(arr)
+function showData(obj) {
 
     let box = document.createElement("div");
     box.classList.add("boxData", "flip-card");
@@ -42,22 +50,22 @@ function showData(arr) {
     backBox.classList.add("flip-card-back")
 
     let img = document.createElement("img");
-    img.src = arr.sprites.other.dream_world.front_default;
+    img.src = obj.sprites.other.dream_world.front_default;
 
     let name = document.createElement("h3");
-    name.innerText = arr.name;
+    name.innerText = obj.name;
 
     frontBox.append(img, name)
 
     let backText = document.createElement("p");
-    backText.innerText = `ID: ${arr.id} 
-                          Height: ${arr.height}
-                          Weight: ${arr.weight}`;
+    backText.innerText = `ID: ${obj.id} 
+                          Height: ${obj.height}
+                          Weight: ${obj.weight}`;
     backBox.append(backText);
 
     innerBox.append(frontBox, backBox)
     box.append(innerBox);
-    container.append(box);
+    fragment.append(box);
 }
 
 searchPokemon.addEventListener('keyup', searchThePokemon)
@@ -73,6 +81,6 @@ function searchThePokemon(e) {
         }
         else
             theBox.style.display = 'none'
-        
+
     }
 }

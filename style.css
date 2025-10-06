@@ -71,5 +71,6 @@ h3{
   background-color: navy;
   padding: 10px;
   color: white;
+  line-height: 30px;
   transform: rotateY(180deg);
 }
